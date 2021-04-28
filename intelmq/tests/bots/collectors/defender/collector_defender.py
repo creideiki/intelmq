@@ -92,7 +92,7 @@ Output structure:
    "malware.name": "Malware name, if known",
    "source.fqdn": "Hostname of computer generating alert",
    "time.source": "Timestamp of the first event in this Defender incident"
-
+   "source.account": "Account running the malware"
 
 SPDX-FileCopyrightText: 2021 Linköping University <https://liu.se/>
 SPDX-License-Identifier: AGPL-3.0-or-later
