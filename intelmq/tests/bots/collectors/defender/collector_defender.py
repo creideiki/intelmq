@@ -128,26 +128,29 @@ import json
 
 
 class DefenderCollectorBot(CollectorBot):
+    tenant_id: str = None
+    client_id: str = None
+    client_secret: str = None
+    lookback: int = 0
+
     def init(self):
         if BackendApplicationClient is None:
             raise MissingDependencyError("oauthlib-requests")
 
-        self.tenant_id = getattr(self.parameters, "tenant_id", None)
         if not self.tenant_id:
             raise ConfigurationError("API", "No tenant ID specified")
 
-        self.client_id = getattr(self.parameters, "client_id", None)
         if not self.client_id:
             raise ConfigurationError("API", "No client ID specified")
 
-        self.client_secret = getattr(self.parameters, "client_secret", None)
         if not self.client_secret:
             raise ConfigurationError("API", "No client secret specified")
 
-        if getattr(self.parameters, "rate_limit", 0) < 2:
+        if self.rate_limit < 2:
             raise ConfigurationError("Runtime", "rate_limit must be >= 2 seconds to avoid throttling")
 
-        self.lookback = getattr(self.parameters, "lookback", self.parameters.rate_limit)
+        if self.lookback == 0:
+            self.lookback = self.rate_limit
 
         self.token_uri = f'https://login.microsoftonline.com/{self.tenant_id}/oauth2/token'
         self.base_uri = "securitycenter.windows.com"
