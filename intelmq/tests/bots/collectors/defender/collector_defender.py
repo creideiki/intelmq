@@ -125,12 +125,13 @@ from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 from datetime import datetime, timezone, timedelta
 import json
+from typing import Optional
 
 
 class DefenderCollectorBot(CollectorBot):
-    tenant_id: str = None
-    client_id: str = None
-    client_secret: str = None
+    tenant_id: Optional[str] = None
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
     lookback: int = 0
 
     def init(self):
