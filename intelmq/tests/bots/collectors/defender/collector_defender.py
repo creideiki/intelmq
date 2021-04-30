@@ -100,6 +100,9 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 Parameters:
 
+api_region: string, default None, cloud region for API calls. Either
+            None (for worldwide) or one of [ "us", "eu", "uk" ].
+
 tenant_id: string, your Office 365 tenant ID.
 
 client_id: string, the client ID you created for this application.
@@ -143,6 +146,7 @@ class DefenderCollectorBot(CollectorBot):
     lookback: int = 0
     valid_categories: List[str] = ["malware", "unwantedsoftware", "ransomware", "exploit", "credentialaccess"]
     invalid_path: str = "invalid"
+    api_region: Optional[str] = None
 
     def init(self):
         if BackendApplicationClient is None:
@@ -163,10 +167,17 @@ class DefenderCollectorBot(CollectorBot):
         if self.lookback == 0:
             self.lookback = self.rate_limit
 
+        if self.api_region is None:
+            api_host = "api"
+        elif self.api_region in ["eu", "uk", "us"]:
+            api_host = "api-" + self.api_region
+        else:
+            raise ConfigurationError("API", f'Unknown API region "{self.api_region}", must be None, "eu", "uk", or "us".')
+
         self.token_uri = f'https://login.microsoftonline.com/{self.tenant_id}/oauth2/token'
         self.base_uri = "securitycenter.windows.com"
         self.resource_uri = f"https://api.{self.base_uri}"
-        self.api_uri = f"https://api-eu.{self.base_uri}/api"
+        self.api_uri = f"https://{api_host}.{self.base_uri}/api"
         self.alert_path = "/alerts"
         self.advanced_query_path = "/advancedqueries/run"
 
