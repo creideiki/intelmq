@@ -12,10 +12,11 @@ Defender wants to include quite a lot of information that doesn't fit
 in IntelMQ's default harmonisation, so it abuses the "extra" namespace
 to store its information.
 
-If the alert was of a category the bot doesn't know how to handle,
-dumps a string with the JSON decode of the alert in the event field
-"extra.alert_string" and sends it to the IntelMQ output path named
-"unhandled".
+Defender creates alerts of a number of different categories. The bot
+will handle the ones specified in the parameter "valid_categories".
+Any others will be dumped as a JSON-formatted string in the event
+field "extra.alert_string" and sent to the IntelMQ output path
+specified as "invalid_path".
 
 Output structure:
 
@@ -115,6 +116,13 @@ rate_limit: integer, no default, number of seconds to sleep between
             runs. Must be >= 2, since the API defaults to throttling
             clients connecting more than 100 times/minute.
 
+valid_categories: list of strings, default [ "malware",
+                  "unwantedsoftware", "ransomware", "exploit",
+                  "credentialaccess" ], event categories to send to
+                  the default pipeline.
+
+invalid_path: string, default "invalid",
+
 """
 from intelmq.lib.bot import CollectorBot
 from intelmq.lib.utils import unzip, create_request_session
@@ -125,7 +133,7 @@ from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 from datetime import datetime, timezone, timedelta
 import json
-from typing import Optional
+from typing import Optional, List
 
 
 class DefenderCollectorBot(CollectorBot):
@@ -133,6 +141,8 @@ class DefenderCollectorBot(CollectorBot):
     client_id: Optional[str] = None
     client_secret: Optional[str] = None
     lookback: int = 0
+    valid_categories: List[str] = ["malware", "unwantedsoftware", "ransomware", "exploit", "credentialaccess"]
+    invalid_path: str = "invalid"
 
     def init(self):
         if BackendApplicationClient is None:
@@ -197,13 +207,12 @@ class DefenderCollectorBot(CollectorBot):
         for alert in alerts:
             self.logger.debug("Considering alert: %s", alert)
             category = alert.get("category", "unknown")
-            valid_categories = ["malware", "unwantedsoftware", "ransomware", "exploit", "credentialaccess"]
-            if category.casefold() not in valid_categories:
+            if category.casefold() not in self.valid_categories:
                 event = self.new_event()
                 event.add("feed.url", self.api_uri)
                 event.add("raw", str(alert))
                 event.add("extra.alert_string", json.dumps(alert, indent=4))
-                self.send_message(event, path="unhandled")
+                self.send_message(event, path=self.invalid_path)
                 continue
 
             fileinfo = []
