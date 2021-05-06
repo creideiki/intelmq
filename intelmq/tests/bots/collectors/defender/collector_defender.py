@@ -245,7 +245,7 @@ class DefenderCollectorBot(CollectorBot):
                 if "error" in result:
                     self.logger.warning("Error fetching username for machine %s: %s", machineid, data["error"])
                 if len(result) > 0:
-                    username = result[0]["username"]
+                    username = result[0]["username"] or "Unknown"
 
             event = self.new_event()
             event.add("source.account", username)
