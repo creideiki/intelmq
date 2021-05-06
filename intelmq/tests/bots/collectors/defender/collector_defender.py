@@ -276,7 +276,9 @@ class DefenderCollectorBot(CollectorBot):
     def get_fileinformation(self, oauth, sha1):
         result = {}
 
+        self.logger.debug("Fetching file information for SHA1 %s", str(sha1))
         r = oauth.get(self.api_uri + "/files/" + str(sha1))
+        self.logger.debug("Status: %s, text: %s", r.status_code, r.text)
         try:
             result = json.loads(r.text)
             if "error" in result:
@@ -292,7 +294,9 @@ class DefenderCollectorBot(CollectorBot):
     def run_advancedhunting(self, oauth, query):
         result = []
 
+        self.logger.debug("Running advanced hunting query: %s", json.dumps(query))
         r = oauth.post(self.api_uri + self.advanced_query_path, data=json.dumps(query))
+        self.logger.debug("Status: %s, text: %s", r.status_code, r.text)
         try:
             data = json.loads(r.text)
             if data.get("Results", None):
