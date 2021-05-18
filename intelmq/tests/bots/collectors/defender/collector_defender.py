@@ -243,7 +243,7 @@ class DefenderCollectorBot(CollectorBot):
                 query = {"Query": f'DeviceEvents | where DeviceId == "{alert["machineId"]}" and ActionType == "AntivirusDetection" | project username=InitiatingProcessAccountName | limit 1'}
                 result = self.run_advancedhunting(oauth, query)
                 if "error" in result:
-                    self.logger.warning("Error fetching username for machine %s: %s", machineid, data["error"])
+                    self.logger.warning("Error fetching username for machine %s: %s", alert["machineid"], data["error"])
                 if len(result) > 0:
                     username = result[0]["username"] or "Unknown"
 
