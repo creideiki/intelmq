@@ -174,7 +174,7 @@ class GenerateAlert:
         if self.use_real_threats:
             return self.threat["threatFamilyName"]
         else:
-            return choice(["IntelMQ_Test_Alert"])
+            return "IntelMQ_Test_Alert"
 
     @staticmethod
     def generate_title():
