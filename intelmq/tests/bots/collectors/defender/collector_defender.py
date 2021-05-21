@@ -124,7 +124,8 @@ valid_categories: list of strings, default [ "malware",
                   "credentialaccess" ], event categories to send to
                   the default pipeline.
 
-invalid_path: string, default "invalid",
+invalid_path: string, default "invalid", the IntelMQ destination queue
+              handling invalid alerts.
 
 """
 from intelmq.lib.bot import CollectorBot
