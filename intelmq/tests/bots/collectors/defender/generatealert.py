@@ -190,9 +190,20 @@ class GenerateAlert:
         dt = datetime.now(tz=timezone.utc)
         return dt.strftime("%Y-%m-%dT%H:%M:%S.%f0Z")
 
+    def generate_machineid(self):
+        return self.generate_sha1()
+
     @staticmethod
-    def generate_machineid():
-        return hashlib.sha1(b"IntelMQ test").hexdigest()
+    def generate_sha1(value = "IntelMQ test"):
+        return hashlib.sha1(value.encode()).hexdigest()
+
+    @staticmethod
+    def generate_sha256(value = "IntelMQ test"):
+        return hashlib.sha256(value.encode()).hexdigest()
+
+    @staticmethod
+    def generate_md5(value = "IntelMQ test"):
+        return hashlib.md5(value.encode()).hexdigest()
 
     @staticmethod
     def generate_computerdnsname():
