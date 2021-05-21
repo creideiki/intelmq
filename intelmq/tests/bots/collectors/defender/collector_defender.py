@@ -89,7 +89,7 @@ Output structure:
    "extra.incident.status": "Defender's incident status",
    "extra.malware.category": "Malware category",
    "extra.malware.severity": "Malware severity",
-   "extra.time.resolved": "Timestampo when Defender considered this incident resolved",
+   "extra.time.resolved": "Timestamp when Defender considered this incident resolved",
    "malware.name": "Malware name, if known",
    "source.fqdn": "Hostname of computer generating alert",
    "time.source": "Timestamp of the first event in this Defender incident"
@@ -271,7 +271,7 @@ class DefenderCollectorBot(CollectorBot):
             self.send_message(event)
 
     def format_timestamp(self, timestamp):
-        return DateTime.convert_from_format(timestamp.split('.')[0], "%Y-%m-%dT%H:%M:%S")
+        return DateTime.convert_from_format(timestamp.split('.')[0] + "+00:00", "%Y-%m-%dT%H:%M:%S%z")
 
     def get_fileinformation(self, oauth, sha1):
         result = {}
