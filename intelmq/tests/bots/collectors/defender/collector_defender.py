@@ -131,7 +131,7 @@ invalid_path: string, default "invalid", the IntelMQ destination queue
 from intelmq.lib.bot import CollectorBot
 from intelmq.lib.utils import unzip, create_request_session
 from intelmq.lib.harmonization import DateTime
-from intelmq.lib.exceptions import MissingDependencyError
+from intelmq.lib.exceptions import ConfigurationError, MissingDependencyError
 
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
