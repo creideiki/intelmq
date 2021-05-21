@@ -228,17 +228,17 @@ class GenerateAlert:
         # TODO: Add variants of mitre techniques
         return choice([[], ["T1000"]])
 
-    @staticmethod
-    def generate_relateduser():
+    def generate_relateduser(self):
         # This is either None or an object
         # Format of valid object is:
         # {"userName": "user", "domainName": "example"}
         
         # TODO: Add real usernames for accurate testing
-        return choice([None])
+        user = self.generate_user()
+        return choice([{"userName": user.username, "domainName": user.domain}])
 
     @staticmethod
-    def generate_comments():
+    def generate_comment():
         # This is always a list
         # Format of valid comment is:
         # {"comment": "This is a comment", "createdBy": "user@example.com", "createdTime": "2021-01-28T15:39:51.32Z"}
