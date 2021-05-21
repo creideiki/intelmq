@@ -197,27 +197,27 @@ class DefenderCollectorBot(CollectorBot):
         time_filter = f"?$filter=alertCreationTime ge {date_string}"
         options = "&$expand=evidence"
 
-        self.logger.debug("Fetching alerts: %s", self.api_uri + self.alert_path + time_filter + options)
+        self.logger.debug("Fetching alerts: %s.", self.api_uri + self.alert_path + time_filter + options)
         r = oauth.get(self.api_uri + self.alert_path + time_filter + options)
 
         try:
             response = json.loads(r.text)
         except json.decoder.JSONDecodeError as e:
-            self.logger.error("Error: %s, Raw: %s", str(e), r.text)
+            self.logger.error("Error: %s, Raw: %s.", str(e), r.text)
             return
 
         if "error" in response:
-            self.logger.error("API error: %s", response['error'])
+            self.logger.error("API error: %s.", response['error'])
             return
 
         if "value" in response:
             alerts = response["value"]
         else:
-            self.logger.error("API response did not contain 'value'. Response: %s", r.text)
+            self.logger.error("API response did not contain 'value'. Response: %s.", r.text)
             return
 
         for alert in alerts:
-            self.logger.debug("Considering alert: %s", alert)
+            self.logger.debug("Considering alert: %s.", alert)
             category = alert.get("category", "unknown")
             if category.casefold() not in self.valid_categories:
                 event = self.new_event()
@@ -244,7 +244,7 @@ class DefenderCollectorBot(CollectorBot):
                 query = {"Query": f'DeviceEvents | where DeviceId == "{alert["machineId"]}" and ActionType == "AntivirusDetection" | project username=InitiatingProcessAccountName | limit 1'}
                 result = self.run_advancedhunting(oauth, query)
                 if "error" in result:
-                    self.logger.warning("Error fetching username for machine %s: %s", alert["machineid"], data["error"])
+                    self.logger.warning("Error fetching username for machine %s: %s.", alert["machineid"], data["error"])
                 if len(result) > 0:
                     username = result[0]["username"] or "Unknown"
 
@@ -277,35 +277,35 @@ class DefenderCollectorBot(CollectorBot):
     def get_fileinformation(self, oauth, sha1):
         result = {}
 
-        self.logger.debug("Fetching file information for SHA1 %s", str(sha1))
+        self.logger.debug("Fetching file information for SHA1 %s.", str(sha1))
         r = oauth.get(self.api_uri + "/files/" + str(sha1))
-        self.logger.debug("Status: %s, text: %s", r.status_code, r.text)
+        self.logger.debug("Status: %s, text: %s.", r.status_code, r.text)
         try:
             result = json.loads(r.text)
             if "error" in result:
-                self.logger.warning("Error fetching file information for sha1 %s: %s", sha1, result["error"])
+                self.logger.warning("Error fetching file information for sha1 %s: %s.", sha1, result["error"])
                 result = {}
         except json.decoder.JSONDecodeError as e:
-            self.logger.error("JSON error getting file information: %s, Raw: %s", str(e), r.text)
+            self.logger.error("JSON error getting file information: %s, Raw: %s.", str(e), r.text)
         except KeyError as e:
-            self.logger.error("Error getting file information: Key not found: %s, Raw: %s", str(e), r.text)
+            self.logger.error("Error getting file information: Key not found: %s, Raw: %s.", str(e), r.text)
         finally:
             return result
 
     def run_advancedhunting(self, oauth, query):
         result = []
 
-        self.logger.debug("Running advanced hunting query: %s", json.dumps(query))
+        self.logger.debug("Running advanced hunting query: %s.", json.dumps(query))
         r = oauth.post(self.api_uri + self.advanced_query_path, data=json.dumps(query))
-        self.logger.debug("Status: %s, text: %s", r.status_code, r.text)
+        self.logger.debug("Status: %s, text: %s.", r.status_code, r.text)
         try:
             data = json.loads(r.text)
             if data.get("Results", None):
                 result = data["Results"]
         except json.decoder.JSONDecodeError as e:
-            self.logger.error("JSON error running advanced hunting query: %s, Raw: %s", str(e), r.text)
+            self.logger.error("JSON error running advanced hunting query: %s, Raw: %s.", str(e), r.text)
         except KeyError as e:
-            self.logger.error("Error running advanced hunting query: Key not found: %s, Raw: %s", str(e), r.text)
+            self.logger.error("Error running advanced hunting query: Key not found: %s, Raw: %s.", str(e), r.text)
         finally:
             return result
 
