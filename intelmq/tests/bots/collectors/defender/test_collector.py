@@ -17,6 +17,25 @@ class Mock_Response:
         self.text = json.dumps(structure)
 
 
+class Mock_API_Endpoint:
+    api_uri = ""
+    alert_response = []
+    files_response = []
+
+    def __init__(self, api_uri="", alert_response=[], files_response=[]):
+        self.api_uri = api_uri
+        self.alert_response = alert_response
+        self.files_response = files_response
+
+    def __call__(self, url):
+        if url.startswith(self.api_uri + "/alerts"):
+            return Mock_Response(self.alert_response)
+        elif url.startswith(self.api_uri + "/files"):
+            return Mock_Response(self.files_response)
+        else:
+            return Mock_Response("Mock API called with unknown URL: " + url)
+
+
 class TestDefenderCollectorBot(test.BotTestCase, unittest.TestCase):
 
     @classmethod
@@ -49,7 +68,8 @@ class TestDefenderCollectorBot(test.BotTestCase, unittest.TestCase):
     @patch('requests_oauthlib.OAuth2Session.get')
     def test_empty_alert(self, oauth2_get_mock, oauth2_fetch_token_mock):
         empty_alert = {}
-        oauth2_get_mock.return_value = Mock_Response({"value": [empty_alert]})
+        oauth2_get_mock.side_effect = Mock_API_Endpoint(api_uri="https://api.securitycenter.windows.com/api",
+                                                        alert_response={"value": [empty_alert]})
         self.prepare_bot(destination_queues={
             "_default": "default_output_queue",
             "unhandled": ["unhandled_queue"]
