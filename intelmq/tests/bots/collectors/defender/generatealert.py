@@ -148,9 +148,12 @@ class GenerateAlert:
         return choice(["", "AutomatedInvestigation", "CustomerTI", "MTP", \
                        "WindowsDefenderAtp", "WindowsDefenderAv"])
 
+    def generate_detectorid(self):
+        return str(self.generate_uuid())
+
     @staticmethod
-    def generate_detectorid():
-        return str(uuid4())
+    def generate_uuid():
+        return uuid4()
 
     @staticmethod
     def generate_category():
@@ -203,9 +206,8 @@ class GenerateAlert:
         # example using the string "A".
         return None
 
-    @staticmethod
-    def generate_aadtenantid():
-        return str(uuid4())
+    def generate_aadtenantid(self):
+        return str(self.generate_uuid())
 
     @staticmethod
     def generate_mitretechniques():
