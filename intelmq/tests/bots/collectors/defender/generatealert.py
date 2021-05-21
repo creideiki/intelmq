@@ -105,16 +105,12 @@ class GenerateAlert:
         self.threat = choice(self.THREATS)
 
     @staticmethod
-    def generate_id():
+    def generate_alertid():
         return f"da{randrange(0,999999999999999999):018d}_{randrange(1000000,99999999999)}"
 
     @staticmethod
-    def generate_incidentid():
-        return randrange(1, 9999)
-
-    @staticmethod
-    def generate_investigationid():
-        return randrange(1, 9999)
+    def generate_shortid(start, end):
+        return randrange(start, end)
 
     @staticmethod
     def generate_assignedto():
