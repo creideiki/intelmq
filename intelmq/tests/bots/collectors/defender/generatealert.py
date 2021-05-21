@@ -1,3 +1,4 @@
+from collections import namedtuple
 from random import randrange, choice
 from uuid import uuid4
 from datetime import datetime, timezone
@@ -246,11 +247,165 @@ class GenerateAlert:
         # TODO: Add dummy comments
         return choice([[{"comment": "This is a comment", "createdBy": "user@example.com", "createdTime": "2021-01-28T15:39:51.32Z"}]])
 
+    @staticmethod
+    def generate_filename():
+        #TODO: Add variants on filename
+        return "intelmq_test.exe"
+
+    @staticmethod
+    def generate_filepath():
+        #TODO: Add variants on filepath
+        return "C:\Program Files\intelmq"
+
+    @staticmethod
+    def generate_processcommandline():
+        #TODO: Add variants to command lines
+        return choice([None, ""])
+
+    @staticmethod
+    def generate_ipaddress():
+        #TODO: look into using faker for this data, https://pypi.org/project/Faker/
+        return "127.0.0.1"
+
+    @staticmethod
+    def generate_url():
+        #TODO: look into using faker for this data, https://pypi.org/project/Faker/
+        return "https://www.example.com"
+
+    def generate_user(self):
+        #TODO: Add possibility to choose from real usernames
+        # and maybe use faker
+        user = namedtuple("User", "username, domain, principalname, sid, uuid")
+        user.username = "user"
+        user.domain = "example"
+        user.principalname = "user@example.com"
+        user.sid = "S-1-5-18"
+        user.uuid = str(self.generate_uuid())
+        return user
+
+    @staticmethod
+    def generate_detectionstatus():
+        return choice([None, "Blocked", "Detected", "Prevented"])
+
+    @staticmethod
+    def generate_registryentry():
+        hive = choice(["HKEY_LOCAL_MACHINE", "HKEY_USERS", "HKEY_CURRENT_USER"])
+        key = choice(["SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\RunOnce"])
+        value = "intelmq".encode().hex().upper()
+        regtype = choice(["Unknown", "String", "ExpandString"])
+
+        entry = namedtuple("Entry", "hive, key, value, type")
+        entry.hive = hive
+        entry.key = key
+        entry.value = value
+        entry.type = regtype
+
+        return entry
+
+    def create_evidence(self, amount = randrange(1, 4), \
+                        specific_types = ["File", "Ip", "Process", "Registry", "Url", \
+                                          "User"]):
+
+        evidence = []
+        for i in range(amount):
+            selected_type = choice(specific_types)
+
+            entry = {
+                "entityType": selected_type,
+                "evidenceCreationTime": None,
+                "sha1": None,
+                "sha256": None,
+                "fileName": None,
+                "filePath": None,
+                "processId": None,
+                "processCommandLine": None,
+                "processCreationTime": None,
+                "parentProcessId": None,
+                "parentProcessCreationTime": None,
+                "parentProcessFileName": None,
+                "ipAddress": None,
+                "url": None,
+                "registryKey": None,
+                "registryHive": None,
+                "registryValueType": None,
+                "registryValue": None,
+                "accountName": None,
+                "domainName": None,
+                "userSid": None,
+                "aadUserId": None,
+                "userPrincipalName": None,
+                "detectionStatus": None
+            }
+
+            if selected_type == "File":
+                entry["evidenceCreationTime"] = self.generate_timestamp()
+                entry["sha1"] = self.generate_sha1()
+                entry["sha256"] = self.generate_sha256()
+                entry["fileName"] = self.generate_filename()
+                entry["filePath"] = self.generate_filepath()
+                entry["detectionStatus"] = self.generate_detectionstatus()
+
+            elif selected_type == "Ip":
+                entry["evidenceCreationTime"] = self.generate_timestamp()
+                entry["ipAddress"] = self.generate_ipaddress()
+
+            elif selected_type == "Process":
+                user = self.generate_user()
+
+                entry["aadUserId"] = user.uuid
+                entry["accountName"] = user.username
+                entry["detectionStatus"] = self.generate_detectionstatus()
+                entry["domainName"] = user.domain
+                entry["evidenceCreationTime"] = self.generate_timestamp()
+                entry["fileName"] = self.generate_filename()
+                entry["filePath"] = self.generate_filepath()
+                entry["parentProcessCreationTime"] = self.generate_timestamp()
+                entry["parentProcessFileName    "] = self.generate_filename()
+                entry["parentProcessFilePath"] = self.generate_filepath()
+                entry["parentProcessId"] = self.generate_shortid(1000, 99999)
+                entry["processCommandLine"] = self.generate_processcommandline()
+                entry["processCreationTime"] = self.generate_timestamp()
+                entry["processId"] = self.generate_shortid(1000, 99999)
+                entry["sha1"] = self.generate_sha1()
+                entry["sha256"] = self.generate_sha256()
+                entry["userPrincipalName"] = user.principalname
+                entry["userSid"] = user.sid
+
+            elif selected_type == "Registry":
+                registryentry = self.generate_registryentry()
+
+                entry["evidenceCreationTime"] = self.generate_timestamp()
+                entry["registryHive"] = registryentry.hive
+                entry["registryKey"] = registryentry.key
+                entry["registryValue"] = registryentry.value
+                entry["registryValueType"] = registryentry.type
+
+            elif selected_type == "Url":
+                entry["evidenceCreationTime"] = self.generate_timestamp()
+                entry["url"] = self.generate_url()
+
+            elif selected_type == "User":
+                user = self.generate_user()
+
+                entry["aadUserId"] = user.uuid
+                entry["accountName"] = user.username
+                entry["domainName"] = user.domain
+                entry["evidenceCreationTime"] = self.generate_timestamp()
+                entry["userPrincipalName"] = user.principalname
+                entry["userSid"] = user.sid
+
+            else:
+                raise("Invalid type")
+
+            evidence.append(entry)
+
+        return evidence
+
     def create_alert(self):
         output = {
-            "id": self.generate_id(),
-            "incidentId": self.generate_incidentid(),
-            "investigationId": self.generate_investigationid(),
+            "id": self.generate_alertid(),
+            "incidentId": self.generate_shortid(1, 9999),
+            "investigationId": self.generate_shortid(1, 9999),
             "assignedTo": self.generate_assignedto(),
             "severity": self.generate_severity(),
             "status": self.generate_status(),
@@ -281,6 +436,6 @@ class GenerateAlert:
             output["comments"] = self.generate_comments()
 
         if self.use_evidence:
-            output["evidence"] = []
+            output["evidence"] = self.create_evidence(10)
 
         return json.dumps(output)
