@@ -272,7 +272,7 @@ class DefenderCollectorBot(CollectorBot):
             self.send_message(event)
 
     def format_timestamp(self, timestamp):
-        return DateTime.convert_from_format(timestamp.split('.')[0] + "+00:00", "%Y-%m-%dT%H:%M:%S%z")
+        return DateTime.convert_from_format(timestamp.split('.')[0] + "+0000", "%Y-%m-%dT%H:%M:%S%z")
 
     def get_fileinformation(self, oauth, sha1):
         result = {}
