@@ -53,7 +53,7 @@ class TestDefenderCollectorBot(test.BotTestCase, unittest.TestCase):
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
             "rate_limit": 60,
-            "invalid_path": "unhandled",
+            "invalid_path": "unhandled"
         }
 
     @patch('requests_oauthlib.OAuth2Session.fetch_token')
