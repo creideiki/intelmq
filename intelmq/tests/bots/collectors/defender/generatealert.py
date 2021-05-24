@@ -440,9 +440,9 @@ class GenerateAlert:
             output["relatedUser"] = self.generate_relateduser()
 
         if self.use_comments:
-            output["comments"] = self.generate_comments()
+            output["comments"] = self.generate_comment()
 
         if self.use_evidence:
-            output["evidence"] = self.create_evidence(1)
+            output["evidence"] = self.create_evidence(5)
 
         return output
