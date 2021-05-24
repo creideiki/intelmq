@@ -238,8 +238,8 @@ class DefenderCollectorBot(CollectorBot):
 
             username = "Unknown"
             if alert.get("relatedUser", None) and \
-               alert["relatedUser"].get("username", None):
-                username = alert["relatedUser"]["username"]
+               alert["relatedUser"].get("userName", None):
+                username = alert["relatedUser"]["userName"]
             else:
                 query = {"Query": f'DeviceEvents | where DeviceId == "{alert["machineId"]}" and ActionType == "AntivirusDetection" | project username=InitiatingProcessAccountName | limit 1'}
                 result = self.run_advancedhunting(oauth, query)
