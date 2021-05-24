@@ -110,12 +110,8 @@ class TestDefenderCollectorBot(test.BotTestCase, unittest.TestCase):
         oauth2_get_mock.side_effect = Mock_API_Endpoint(api_uri="https://api.securitycenter.windows.com/api",
                                                         alert_response={"value": [ALERT]})
 
-        self.prepare_bot(destination_queues={
-            "_default": "default_output_queue",
-            "unhandled": ["unhandled_queue"]
-        })
         self.run_bot()
-        self.assertOutputQueueLen(1, "_default")
+        self.assertOutputQueueLen(1)
         self.assertMessageEqual(0,
                                 {
                                     "__type": "Report",
@@ -133,8 +129,7 @@ class TestDefenderCollectorBot(test.BotTestCase, unittest.TestCase):
                                     "feed.accuracy": 100.0,
                                     "feed.name": "Test Bot",
                                     "raw": base64_encode(str(ALERT))
-                                },
-                                path="_default")
+                                })
 
     @patch('requests_oauthlib.OAuth2Session.post')
     @patch('requests_oauthlib.OAuth2Session.fetch_token')
