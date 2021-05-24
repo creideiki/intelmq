@@ -99,10 +99,12 @@ class GenerateAlert:
         {"threatFamilyName": "Zpevdo", "threatName": "Trojan:Win32/Zpevdo.B"}
     ]
 
-    def __init__(self, use_real_threats, use_evidence, use_comments):
-        self.use_evidence = use_evidence
-        self.use_comments = use_comments
-        self.use_real_threats= use_real_threats
+    def __init__(self):
+        self.use_evidence = False
+        self.use_comments = False
+        self.use_real_threats = False
+        self.use_relateduser = False
+        self.use_only_valid_category = False
         self.threat = choice(self.THREATS)
 
     @staticmethod
@@ -156,13 +158,15 @@ class GenerateAlert:
     def generate_uuid():
         return uuid4()
 
-    @staticmethod
-    def generate_category():
-        return choice(["CredentialAccess", "DefenseEvasion", "Discovery" \
-                       "Execution", "Exploit", "General", "InitialAccess", \
-                       "LateralMovement", "Malware", "Persistence", \
-                       "Ransomware", "SuspiciousActivity", \
-                       "UnwantedSoftware", ""])
+    def generate_category(self):
+        if self.use_only_valid_category:
+            return choice(["Malware", "UnwantedSoftware", "Ransomware", "Exploit", "CredentialAccess"])
+        else:
+            return choice(["CredentialAccess", "DefenseEvasion", "Discovery" \
+                           "Execution", "Exploit", "General", "InitialAccess", \
+                           "LateralMovement", "Malware", "Persistence", \
+                           "Ransomware", "SuspiciousActivity", \
+                           "UnwantedSoftware", ""])
     
     def generate_threatname(self):
         if self.use_real_threats:
@@ -428,14 +432,17 @@ class GenerateAlert:
             "rbacGroupName": self.generate_rbacgroupname(),
             "aadTenantId": self.generate_aadtenantid(),
             "threatName": self.generate_threatname(),
-            "relatedUser": self.generate_relateduser(),
+            "relatedUser": [],
             "comments": []
         }
+
+        if self.use_relateduser:
+            output["relatedUser"] = self.generate_relateduser()
 
         if self.use_comments:
             output["comments"] = self.generate_comments()
 
         if self.use_evidence:
-            output["evidence"] = self.create_evidence(10)
+            output["evidence"] = self.create_evidence(1)
 
-        return json.dumps(output)
+        return output
