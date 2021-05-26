@@ -146,6 +146,7 @@ class DefenderParserBot(ParserBot):
             event.add("extra.time.resolved", self.format_timestamp(alert["resolvedTime"]))
 
         self.send_message(event)
+        self.acknowledge_message()
 
 
 BOT = DefenderParserBot
