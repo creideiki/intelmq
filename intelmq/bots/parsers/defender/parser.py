@@ -60,6 +60,7 @@ Output structure:
    "source.fqdn": "Hostname of computer generating alert",
    "time.source": "Timestamp of the first event in this Defender incident"
    "source.account": "Account running the malware"
+   "extra.machineid": "Defender ID of the machine running the malware"
 
 SPDX-FileCopyrightText: 2021 Linköping University <https://liu.se/>
 SPDX-License-Identifier: AGPL-3.0-or-later
@@ -139,6 +140,7 @@ class DefenderParserBot(ParserBot):
         self.add_if_present(event, "extra.malware.category", alert, "category")
         self.add_if_present(event, "extra.incident.status", alert, "status")  # Check if failed?
         self.add_if_present(event, "extra.evidence", alert, "evidence")
+        self.add_if_present(event, "extra.machineid", alert, "machineId")
 
         if alert.get("firstEventTime", None):
             event.add("time.source", self.format_timestamp(alert["firstEventTime"]))
