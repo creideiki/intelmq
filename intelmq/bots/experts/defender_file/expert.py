@@ -14,8 +14,6 @@ to store its information.
 
 Input structure:
 
-Output structure:
-
    "extra.evidence": [
       List of "evidence" structures. The format is fixed, but contains
       the union of all fields ever used. Hence, most fields are null,
