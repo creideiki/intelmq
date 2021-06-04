@@ -9,6 +9,7 @@ from intelmq.bots.parsers.defender.parser import DefenderParserBot
 
 ALERT_BASE = {
     "id": "abc123-456789",
+    "title": "'Example' malware detected",
     "incidentId": 12345,
     "assignedTo": None,
     "status": "Test",
@@ -91,6 +92,7 @@ class TestDefenderParserBot(test.BotTestCase, unittest.TestCase):
         event["extra.malware.category"] = "Malware"
         event["source.fqdn"] = "test.example.com"
         event["time.source"] = "2021-05-25T02:02:02+00:00"
+        event["extra.title"] = "'Example' malware detected"
 
         self.input_message = report
         self.run_bot()
@@ -113,6 +115,7 @@ class TestDefenderParserBot(test.BotTestCase, unittest.TestCase):
         event["source.fqdn"] = "test.example.com"
         event["time.source"] = "2021-05-25T02:02:02+00:00"
         event["source.account"] = "test123"
+        event["extra.title"] = "'Example' malware detected"
 
         self.input_message = report
         self.run_bot()
@@ -156,6 +159,7 @@ class TestDefenderParserBot(test.BotTestCase, unittest.TestCase):
         event["source.fqdn"] = "test.example.com"
         event["time.source"] = "2021-05-25T02:02:02+00:00"
         event["extra.evidence"] = [FILE_EVIDENCE]
+        event["extra.title"] = "'Example' malware detected"
 
         self.input_message = report
         self.run_bot()
