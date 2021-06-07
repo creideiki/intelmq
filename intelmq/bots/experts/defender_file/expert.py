@@ -12,6 +12,13 @@ Defender wants to include quite a lot of information that doesn't fit
 in IntelMQ's default harmonisation, so it abuses the "extra" namespace
 to store its information.
 
+There is a race condition in the Defender cloud service, where a file
+information structure may not be ready for retrieval even though an
+alert has been fired recently. To guard against this, any file not
+found errors result in retries a maximum of "retries" times, with a
+random delay of between "min_wait" and "max_wait" seconds between each
+attempt.
+
 Input structure:
 
    "extra.evidence": [
@@ -94,6 +101,16 @@ tenant_id: string, your Office 365 tenant ID.
 client_id: string, the client ID you created for this application.
 
 client_secret: string, the secret you created for this application.
+
+retries: int, default 3, number of times to retry after receiving a
+         "file not found" error.
+
+min_wait: int, default 2, minimum number of seconds to wait between
+          retry attempts.
+
+max_wait: int, default 5, maximum number of seconds to wait between
+          retry attempts.
+
 """
 from intelmq.lib.bot import Bot
 from intelmq.lib.utils import create_request_session
@@ -105,6 +122,7 @@ from requests_oauthlib import OAuth2Session
 from datetime import datetime, timezone, timedelta
 import json
 from typing import Optional, List
+from tenacity import Retrying, TryAgain, stop_after_attempt, wait_random
 
 
 class DefenderFileExpertBot(Bot):
@@ -112,10 +130,15 @@ class DefenderFileExpertBot(Bot):
     tenant_id: Optional[str] = None
     client_id: Optional[str] = None
     client_secret: Optional[str] = None
+    retries: int = 3
+    min_wait: int = 2
+    max_wait: int = 5
 
     def init(self):
         if BackendApplicationClient is None:
             raise MissingDependencyError("oauthlib-requests")
+        if Retrying is None:
+            raise MissingDependencyError("tenacity")
 
         if not self.tenant_id:
             raise ConfigurationError("API", "No tenant ID specified")
@@ -141,18 +164,28 @@ class DefenderFileExpertBot(Bot):
     def get_fileinformation(self, oauth, sha1):
         result = {}
 
-        self.logger.debug("Fetching file information for SHA1 %s.", str(sha1))
-        r = oauth.get(self.api_uri + "/files/" + str(sha1))
-        self.logger.debug("Status: %s, text: %s.", r.status_code, r.text)
         try:
-            result = json.loads(r.text)
-            if "error" in result:
-                self.logger.warning("Error fetching file information for sha1 %s: %s.", sha1, result["error"])
-                result = {}
+            self.logger.debug("Fetching file information for SHA1 %s.", str(sha1))
+            for attempt in Retrying(reraise=True,
+                                    stop=stop_after_attempt(self.retries),
+                                    wait=wait_random(self.min_wait, self.max_wait)):
+                with attempt:
+                    r = oauth.get(self.api_uri + "/files/" + str(sha1))
+                    self.logger.debug("Status: %s, text: %s.", r.status_code, r.text)
+                    response = json.loads(r.text)
+                    if "error" in response:
+                        self.logger.warning("Error fetching file information for SHA1 %s: %s.", sha1, response["error"])
+                        if "code" in response["error"] and\
+                           response["error"]["code"] == "NotFound":
+                            raise TryAgain
+                    else:
+                        result = response
         except json.decoder.JSONDecodeError as e:
             self.logger.error("JSON error getting file information: %s, Raw: %s.", str(e), r.text)
         except KeyError as e:
             self.logger.error("Error getting file information: Key not found: %s, Raw: %s.", str(e), r.text)
+        except TryAgain:
+            self.logger.error("Max retries reached while fetching file information for SHA1 %s", str(sha1))
         finally:
             return result
 
