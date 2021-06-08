@@ -168,7 +168,10 @@ class TestDefenderFileExpertBot(test.BotTestCase, unittest.TestCase):
         cls.sysconfig = {
             "tenant_id": "test_tenant_id",
             "client_id": "test_client_id",
-            "client_secret": "test_client_secret"
+            "client_secret": "test_client_secret",
+            "retries": 2,
+            "min_wait": 1,
+            "max_wait": 2
         }
 
     @patch('requests_oauthlib.OAuth2Session.fetch_token')

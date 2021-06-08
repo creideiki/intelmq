@@ -102,13 +102,13 @@ client_id: string, the client ID you created for this application.
 
 client_secret: string, the secret you created for this application.
 
-retries: int, default 3, number of times to retry after receiving a
+retries: int, default 5, number of times to retry after receiving a
          "file not found" error.
 
-min_wait: int, default 2, minimum number of seconds to wait between
+min_wait: int, default 30, minimum number of seconds to wait between
           retry attempts.
 
-max_wait: int, default 5, maximum number of seconds to wait between
+max_wait: int, default 60, maximum number of seconds to wait between
           retry attempts.
 
 """
@@ -130,9 +130,9 @@ class DefenderFileExpertBot(Bot):
     tenant_id: Optional[str] = None
     client_id: Optional[str] = None
     client_secret: Optional[str] = None
-    retries: int = 3
-    min_wait: int = 2
-    max_wait: int = 5
+    retries: int = 5
+    min_wait: int = 30
+    max_wait: int = 60
 
     def init(self):
         if BackendApplicationClient is None:
