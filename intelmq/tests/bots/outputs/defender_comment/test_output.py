@@ -44,6 +44,7 @@ class Mock_Response:
         self.text = json.dumps(structure)
 
 
+@test.skip_exotic()
 class TestDefenderCommentOutputBot(test.BotTestCase, unittest.TestCase):
 
     @classmethod

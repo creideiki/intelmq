@@ -163,6 +163,7 @@ class Mock_API_Endpoint:
         return Mock_Response("Mock API called with unknown URL: " + url)
 
 
+@test.skip_exotic()
 class TestDefenderFileExpertBot(test.BotTestCase, unittest.TestCase):
 
     @classmethod

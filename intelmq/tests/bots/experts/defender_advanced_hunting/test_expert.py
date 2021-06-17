@@ -34,6 +34,7 @@ class Mock_Response:
         self.text = json.dumps(structure)
 
 
+@test.skip_exotic()
 class TestDefenderAdvancedHuntingExpertBot(test.BotTestCase, unittest.TestCase):
 
     @classmethod
