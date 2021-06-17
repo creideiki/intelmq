@@ -130,12 +130,18 @@ class TestDefenderParserBot(test.BotTestCase, unittest.TestCase):
 
         event = deepcopy(EVENT_BASE)
         event["raw"] = report["raw"]
-        event["extra.alert_string"] = json.dumps(alert, indent=4)
+        event["classification.type"] = "undetermined"
+        event["extra.defender_id"] = "abc123-456789"
+        event["extra.incident.status"] = "Test"
+        event["extra.malware.category"] = "TestCategory"
+        event["extra.title"] = "'Example' malware detected"
+        event["source.fqdn"] = "test.example.com"
+        event["time.source"] = "2021-05-25T02:02:02+00:00"
 
         self.input_message = report
         self.prepare_bot(destination_queues={
             "_default": "default_output_queue",
-            "invalid": ["invalid_queue"]
+            "invalid": "invalid_queue"
         })
         self.run_bot(prepare=False)
         self.assertOutputQueueLen(0, "_default")
@@ -164,6 +170,70 @@ class TestDefenderParserBot(test.BotTestCase, unittest.TestCase):
         self.input_message = report
         self.run_bot()
         self.assertMessageEqual(0, event)
+
+    def test_custom_classification(self):
+        alert = deepcopy(ALERT_BASE)
+        alert["category"] = "TestCategory"
+
+        report = deepcopy(REPORT_BASE)
+        report["raw"] = base64_encode(json.dumps(alert))
+
+        event = deepcopy(EVENT_BASE)
+        event["raw"] = report["raw"]
+        event["classification.type"] = "application-compromise"
+        event["extra.defender_id"] = "abc123-456789"
+        event["extra.incident.status"] = "Test"
+        event["extra.malware.category"] = "TestCategory"
+        event["extra.title"] = "'Example' malware detected"
+        event["source.fqdn"] = "test.example.com"
+        event["time.source"] = "2021-05-25T02:02:02+00:00"
+
+        self.input_message = report
+        self.prepare_bot(parameters={
+            "queue_map": {
+                "_default": ["TestCategory"]
+            },
+            "classification_map": {
+                "application-compromise": ["TestCategory"]
+            }})
+        self.run_bot(prepare=False)
+        self.assertOutputQueueLen(1, "_default")
+        self.assertMessageEqual(0, event, path="_default")
+
+    def test_custom_routing(self):
+        alert = deepcopy(ALERT_BASE)
+        alert["category"] = "TestCategory"
+
+        report = deepcopy(REPORT_BASE)
+        report["raw"] = base64_encode(json.dumps(alert))
+
+        event = deepcopy(EVENT_BASE)
+        event["raw"] = report["raw"]
+        event["classification.type"] = "undetermined"
+        event["extra.defender_id"] = "abc123-456789"
+        event["extra.incident.status"] = "Test"
+        event["extra.malware.category"] = "TestCategory"
+        event["extra.title"] = "'Example' malware detected"
+        event["source.fqdn"] = "test.example.com"
+        event["time.source"] = "2021-05-25T02:02:02+00:00"
+
+        self.input_message = report
+        self.prepare_bot(
+            parameters={
+                "queue_map": {
+                    "_default": ["malware"],
+                    "test": ["TestCategory"]
+                }
+            },
+            destination_queues={
+                "_default": "default-output-queue",
+                "test": "test-queue"
+            }
+        )
+        self.run_bot(prepare=False)
+        self.assertOutputQueueLen(0, "_default")
+        self.assertOutputQueueLen(1, "test")
+        self.assertMessageEqual(0, event, path="test")
 
 
 if __name__ == "__main__":  # pragma: no cover
