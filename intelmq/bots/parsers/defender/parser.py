@@ -7,11 +7,10 @@ Defender wants to include quite a lot of information that doesn't fit
 in IntelMQ's default harmonisation, so it abuses the "extra" namespace
 to store its information.
 
-Defender creates alerts of a number of different categories. The bot
-will handle the ones specified in the parameter "valid_categories".
-Any others will be dumped as a JSON-formatted string in the event
-field "extra.alert_string" and sent to the IntelMQ output path
-specified as "invalid_path".
+Defender creates alerts of a number of different categories. The
+dictionary category_map describes the routing of different categories
+of alerts to different output queues. Alerts of a category not in any
+mapping will be sent to the output queue specified as "invalid_path".
 
 Output structure:
 
@@ -68,10 +67,25 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 Parameters:
 
-valid_categories: list of strings, default [ "malware",
-                  "unwantedsoftware", "ransomware", "exploit",
-                  "credentialaccess" ], event categories to send to
-                  the default pipeline.
+queue_map: map of strings to lists of strings, saying for each output
+           queue which categories of alerts it receives. Matching is
+           case insensitive.
+           Default:
+           {
+              "_default": [ "malware", "unwantedsoftware", "ransomware", "exploit", "credentialaccess" ]
+           }
+
+classification_map: map of strings to lists of strings, saying for
+                    each IntelMQ classification which categories of
+                    alerts get mapped to it. Alerts not matching any
+                    entry are classified as "undetermined". Matching
+                    is case insensitive.
+                    Default:
+                    {
+                       "infected-system": ["malware", "unwantedsoftware", "ransomware"],
+                       "exploit": ["exploit"],
+                       "compromised": ["credentialaccess"],
+                    }
 
 invalid_path: string, default "invalid", the IntelMQ destination queue
               handling alerts with invalid categories.
@@ -82,11 +96,18 @@ from intelmq.lib.harmonization import DateTime
 from intelmq.lib.utils import base64_decode
 
 import json
-from typing import List
+from typing import List, Dict
 
 
 class DefenderParserBot(ParserBot):
-    valid_categories: List[str] = ["malware", "unwantedsoftware", "ransomware", "exploit", "credentialaccess"]
+    queue_map: Dict[str, List[str]] = {
+        "_default": ["malware", "unwantedsoftware", "ransomware", "exploit", "credentialaccess"]
+    }
+    classification_map: Dict[str, List[str]] = {
+        "infected-system": ["malware", "unwantedsoftware", "ransomware"],
+        "exploit": ["exploit"],
+        "compromised": ["credentialaccess"],
+    }
     invalid_path: str = "invalid"
 
     @classmethod
@@ -108,26 +129,23 @@ class DefenderParserBot(ParserBot):
         event.add("raw", raw_report)
 
         category = alert.get("category", "unknown")
-        if category.casefold() not in self.valid_categories:
-            event.add("extra.alert_string", json.dumps(alert, indent=4))
-            self.send_message(event, path=self.invalid_path)
-            self.acknowledge_message()
-            return
+        output_queue = self.invalid_path
+        for queue, categories in self.queue_map.items():
+            for candidate_category in categories:
+                if category.casefold() == candidate_category.casefold():
+                    output_queue = queue
+                    break
 
-        category = alert.get("category", None)
-        if category.casefold() == "malware":
-            classification = "infected-system"
-        elif category.casefold() == "unwantedsoftware":
-            classification = "infected-system"
-        elif category.casefold() == "ransomware":
-            classification = "infected-system"
-        elif category.casefold() == "exploit":
-            classification = "exploit"
-        elif category.casefold() == "credentialaccess":
-            classification = "compromised"
-        else:
-            classification = "undetermined"
+        self.logger.debug("Category %s routed to path %s.", category, output_queue)
 
+        classification = "undetermined"
+        for cf, categories in self.classification_map.items():
+            for candidate_category in categories:
+                if category.casefold() == candidate_category.casefold():
+                    classification = cf
+                    break
+
+        self.logger.debug("Category %s assigned classification %s.", category, classification)
         event.add("classification.type", classification)
 
         if alert.get("relatedUser", None) and \
@@ -149,7 +167,7 @@ class DefenderParserBot(ParserBot):
         if alert.get("resolvedTime", None):
             event.add("extra.time.resolved", self.format_timestamp(alert["resolvedTime"]))
 
-        self.send_message(event)
+        self.send_message(event, path=output_queue)
         self.acknowledge_message()
 
 
