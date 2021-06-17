@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Microsoft Defender API advanced hunting expert bot
 
-Fetches information by running queries agains the Microsoft Defender
+Fetches information by running queries against the Microsoft Defender
 ATP advanced hunting API.
 
 Requires credentials as described in
