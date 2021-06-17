@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Testing Defender to text formatting expert bot.
-"""
+# SPDX-FileCopyrightText: 2021 Linköping University <https://liu.se/>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 import unittest
 from copy import deepcopy
 import json

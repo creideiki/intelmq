@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# SPDX-FileCopyrightText: 2021 Linköping University <https://liu.se/>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 import json
 import unittest
 from copy import deepcopy
