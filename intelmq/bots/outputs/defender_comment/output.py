@@ -39,7 +39,12 @@ from intelmq.lib.utils import create_request_session
 from intelmq.lib.harmonization import DateTime
 from intelmq.lib.exceptions import ConfigurationError, MissingDependencyError
 
-from oauthlib.oauth2 import BackendApplicationClient
+try:
+    from oauthlib.oauth2 import BackendApplicationClient
+    from requests_oauthlib import OAuth2Session
+except:
+    BackendApplicationClient = None
+
 from requests_oauthlib import OAuth2Session
 import json
 from typing import Optional
