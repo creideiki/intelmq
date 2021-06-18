@@ -65,6 +65,7 @@ class TestDefenderCollectorBot(test.BotTestCase, unittest.TestCase):
             "tenant_id": "test_tenant_id",
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
+            "rate_limit": 2
         }
 
     @patch('requests_oauthlib.OAuth2Session.fetch_token')
