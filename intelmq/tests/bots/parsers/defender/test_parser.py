@@ -96,6 +96,7 @@ class TestDefenderParserBot(test.BotTestCase, unittest.TestCase):
         event["source.fqdn"] = "test.example.com"
         event["time.source"] = "2021-05-25T02:02:02+00:00"
         event["extra.title"] = "'Example' malware detected"
+        event["extra.evidence"] = []
 
         self.input_message = report
         self.run_bot()
@@ -119,6 +120,7 @@ class TestDefenderParserBot(test.BotTestCase, unittest.TestCase):
         event["time.source"] = "2021-05-25T02:02:02+00:00"
         event["source.account"] = "test123"
         event["extra.title"] = "'Example' malware detected"
+        event["extra.evidence"] = []
 
         self.input_message = report
         self.run_bot()
@@ -140,6 +142,7 @@ class TestDefenderParserBot(test.BotTestCase, unittest.TestCase):
         event["extra.title"] = "'Example' malware detected"
         event["source.fqdn"] = "test.example.com"
         event["time.source"] = "2021-05-25T02:02:02+00:00"
+        event["extra.evidence"] = []
 
         self.input_message = report
         self.prepare_bot(destination_queues={
@@ -190,6 +193,7 @@ class TestDefenderParserBot(test.BotTestCase, unittest.TestCase):
         event["extra.title"] = "'Example' malware detected"
         event["source.fqdn"] = "test.example.com"
         event["time.source"] = "2021-05-25T02:02:02+00:00"
+        event["extra.evidence"] = []
 
         self.input_message = report
         self.prepare_bot(parameters={
@@ -219,6 +223,7 @@ class TestDefenderParserBot(test.BotTestCase, unittest.TestCase):
         event["extra.title"] = "'Example' malware detected"
         event["source.fqdn"] = "test.example.com"
         event["time.source"] = "2021-05-25T02:02:02+00:00"
+        event["extra.evidence"] = []
 
         self.input_message = report
         self.prepare_bot(
