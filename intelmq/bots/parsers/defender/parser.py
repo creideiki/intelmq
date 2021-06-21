@@ -112,7 +112,7 @@ class DefenderParserBot(ParserBot):
 
     @classmethod
     def add_if_present(self, report, out_field, struct, in_field):
-        if struct.get(in_field, None):
+        if struct.get(in_field, None) is not None:
             report.add(out_field, struct[in_field])
 
     @classmethod
