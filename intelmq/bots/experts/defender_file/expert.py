@@ -169,31 +169,36 @@ class DefenderFileExpertBot(Bot):
         self.resource_uri = f"https://api.{self.base_uri}"
         self.api_uri = f"https://{api_host}.{self.base_uri}/api"
 
-    def get_fileinformation(self, oauth, sha1):
+    def get_fileinformation(self, oauth, hashes):
         result = {}
 
         try:
-            self.logger.debug("Fetching file information for SHA1 %s.", str(sha1))
+            self.logger.debug("Fetching file information for hash values %s.", hashes)
             for attempt in Retrying(reraise=True,
                                     stop=stop_after_attempt(self.retries),
                                     wait=wait_random(self.min_wait, self.max_wait)):
                 with attempt:
-                    r = oauth.get(self.api_uri + "/files/" + str(sha1))
-                    self.logger.debug("Status: %s, text: %s.", r.status_code, r.text)
-                    response = json.loads(r.text)
-                    if "error" in response:
-                        self.logger.warning("Error fetching file information for SHA1 %s: %s.", sha1, response["error"])
-                        if "code" in response["error"] and\
-                           response["error"]["code"] == "NotFound":
-                            raise TryAgain
-                    else:
-                        result = response
+                    found = False
+                    for h in hashes:
+                        self.logger.debug("Trying hash %s.", h)
+                        r = oauth.get(self.api_uri + "/files/" + h)
+                        self.logger.debug("Status: %s, text: %s.", r.status_code, r.text)
+                        response = json.loads(r.text)
+                        if "error" in response:
+                            self.logger.warning("Error fetching file information for hash %s: %s.", h, response["error"])
+                        else:
+                            found = True
+                            result = response
+                            break
+                    if not found:
+                        raise TryAgain
+
         except json.decoder.JSONDecodeError as e:
             self.logger.error("JSON error getting file information: %s, Raw: %s.", str(e), r.text)
         except KeyError as e:
             self.logger.error("Error getting file information: Key not found: %s, Raw: %s.", str(e), r.text)
         except TryAgain:
-            self.logger.error("Max retries reached while fetching file information for SHA1 %s", str(sha1))
+            self.logger.error("Max retries reached while fetching file information for hashes %s", hashes)
         finally:
             return result
 
@@ -208,9 +213,13 @@ class DefenderFileExpertBot(Bot):
         fileinfo = []
         if event.get("extra.evidence", None):
             for evidence in event["extra.evidence"]:
-                if evidence["entityType"].casefold() == "file" and \
-                   evidence.get("sha1", None):
-                    data = self.get_fileinformation(oauth, evidence["sha1"])
+                if evidence["entityType"].casefold() == "file":
+                    hash_types = ["sha1", "sha256"]
+                    hashes = []
+                    for hash_type in hash_types:
+                        if evidence.get(hash_type, None):
+                            hashes.append(evidence[hash_type])
+                    data = self.get_fileinformation(oauth, hashes)
                     if data:
                         fileinfo.append(data)
 
