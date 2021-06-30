@@ -214,8 +214,7 @@ class DefenderFileExpertBot(Bot):
                     if data:
                         fileinfo.append(data)
 
-        if len(fileinfo) > 0:
-            event.add("extra.fileinfo", fileinfo)
+        event.add("extra.fileinfo", fileinfo)
 
         self.send_message(event)
         self.acknowledge_message()
