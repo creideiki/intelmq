@@ -186,11 +186,14 @@ class TestDefenderFileExpertBot(test.BotTestCase, unittest.TestCase):
 
         oauth2_get_mock.return_value = Mock_Response({"error": "Test error"})
 
+        result = deepcopy(event)
+        result["extra.fileinfo"] = []
+
         self.input_message = event
         self.allowed_warning_count = 1
         self.run_bot()
         self.assertRegexpMatchesLog(pattern=f"Error fetching file information for SHA1 {event['extra.evidence'][0]['sha1']}: Test error.")
-        self.assertMessageEqual(0, event)
+        self.assertMessageEqual(0, result)
 
     @patch('requests_oauthlib.OAuth2Session.fetch_token')
     @patch('requests_oauthlib.OAuth2Session.get')
@@ -200,13 +203,16 @@ class TestDefenderFileExpertBot(test.BotTestCase, unittest.TestCase):
 
         oauth2_get_mock.return_value = Mock_Response({"error": {"code": "NotFound"}})
 
+        result = deepcopy(event)
+        result["extra.fileinfo"] = []
+
         self.input_message = event
         self.allowed_warning_count = 3
         self.allowed_error_count = 1
         self.run_bot()
         self.assertRegexpMatchesLog(pattern=f"Error fetching file information for SHA1 {event['extra.evidence'][0]['sha1']}: {{'code': 'NotFound'}}")
         self.assertRegexpMatchesLog(pattern=f"Max retries reached while fetching file information for SHA1 {event['extra.evidence'][0]['sha1']}")
-        self.assertMessageEqual(0, event)
+        self.assertMessageEqual(0, result)
 
     @patch('requests_oauthlib.OAuth2Session.fetch_token')
     @patch('requests_oauthlib.OAuth2Session.get')
